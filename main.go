@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 
@@ -45,6 +46,7 @@ func main() {
 	dockerLogin(dockerRepo)
 
 	ctx := context.Background()
+	go heathCheck()
 	pubsubClient, _ := pubsub.NewClient(ctx, projectID)
 	pubsubClient.Subscription(subscriptionID).Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 		fmt.Printf("Received message: %s\n", msg.Data)
@@ -99,4 +101,12 @@ func mustCompile(config map[string]string) (string, string, string) {
 	}
 
 	return projectID, subscriptionID, dockerRepo
+}
+
+func heathCheck() {
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	http.ListenAndServe(":1337", nil)
 }
