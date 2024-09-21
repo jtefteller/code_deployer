@@ -115,7 +115,9 @@ func mustCompile(config map[string]string) (string, string, string) {
 func heathCheck() {
 	log.Println("Starting health check server")
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		w.Write(json.RawMessage(`{"status": "ok"}`))
 	})
 
 	http.ListenAndServe(":1337", nil)
