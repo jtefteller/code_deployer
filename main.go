@@ -25,6 +25,7 @@ var (
 	configPath     = home + "/.code_deployer/"
 	configYaml     = configPath + "config.yaml"
 	serviceAccount = configPath + "service-account.json"
+	logFile        = configPath + "log.log"
 )
 
 type Message struct {
@@ -32,9 +33,17 @@ type Message struct {
 	Paths  []string `json:"paths"`
 }
 
-func main() {
+func init() {
 	_ = os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", serviceAccount)
+	logFile, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
+	if err != nil {
+		log.Fatalf("Error opening log file: %v", err)
+	}
 
+	log.SetOutput(logFile)
+}
+
+func main() {
 	config := map[string]string{}
 	yamlFile, err := os.Open(configYaml)
 	if err != nil {
@@ -49,7 +58,7 @@ func main() {
 	go heathCheck()
 	pubsubClient, _ := pubsub.NewClient(ctx, projectID)
 	pubsubClient.Subscription(subscriptionID).Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-		fmt.Printf("Received message: %s\n", msg.Data)
+		log.Printf("Received message: %s\n", msg.Data)
 		msg.Ack()
 		msgStruct := &Message{}
 		json.Unmarshal(msg.Data, msgStruct)
@@ -104,6 +113,7 @@ func mustCompile(config map[string]string) (string, string, string) {
 }
 
 func heathCheck() {
+	log.Println("Starting health check server")
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
