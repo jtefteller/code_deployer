@@ -120,5 +120,5 @@ func heathCheck() {
 		w.Write(json.RawMessage(`{"status": "ok"}`))
 	})
 
-	http.ListenAndServe(":1337", nil)
+	http.ListenAndServe("0.0.0.0:1337", nil)
 }
