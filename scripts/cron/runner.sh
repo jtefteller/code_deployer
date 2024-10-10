@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 function check_health {
 	echo $(curl http://localhost:1337/health | jq -r .status)
@@ -10,3 +10,4 @@ if [ "$STATUS" != "ok" ]; then
 	echo "Server is down, restarting..."
 	/root/code_deployer/bin/code_deployer
 fi
+
